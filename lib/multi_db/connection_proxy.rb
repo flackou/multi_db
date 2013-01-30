@@ -54,7 +54,9 @@ module MultiDb
         slaves = init_slaves
         raise "No slaves databases defined for environment: #{self.environment}" if slaves.empty?
         master.send :include, MultiDb::ActiveRecordExtensions
-        ActiveRecord::Observer.send :include, MultiDb::ObserverExtensions
+        unless ActiveRecord::Observer.included_modules.include?(MultiDb::ObserverExtensions)
+          ActiveRecord::Observer.send :include, MultiDb::ObserverExtensions
+        end
         master.connection_proxy = new(master, slaves, scheduler)
         master.logger.info("** multi_db with master and #{slaves.length} slave#{"s" if slaves.length > 1} loaded.")
       end
